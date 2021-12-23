@@ -1,33 +1,59 @@
 package com.example.message;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import java.io.IOException;
+import java.lang.String;
 import com.google.android.material.snackbar.Snackbar;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.provider.CallLog;
 import android.util.Log;
 import android.view.View;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.message.databinding.ActivityMainBinding;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import android.view.Menu;
 import android.view.MenuItem;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     private final String tag = "mainActivity";
+    private final String tagP = "permission";
+    private static final int MY_PERMISSIONS_REQUEST_CODE = 41;
+    private OkHttpClient okHttpClient = new OkHttpClient();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        checkForPermissionAndRequest();
+
     }
 
     @Override
@@ -57,6 +85,27 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_CODE:
+                if (grantResults.length > 0) {
+                    if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                        Log.d(tagP,"call log permission granted");
+                    if(grantResults[1] == PackageManager.PERMISSION_GRANTED)
+                       Log.d(tagP,"packages permission granted");
+
+
+                } else {
+
+                }
+                return;
+        }
     }
 
     @Override
@@ -80,4 +129,24 @@ public class MainActivity extends AppCompatActivity {
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
     }
+
+    public void checkForPermissionAndRequest(){
+        if (ContextCompat.checkSelfPermission(
+                MainActivity.this, Manifest.permission.QUERY_ALL_PACKAGES+
+                        Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+
+        }
+        else {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{
+                            Manifest.permission.READ_CALL_LOG,
+                            Manifest.permission.QUERY_ALL_PACKAGES
+                    },
+                    MY_PERMISSIONS_REQUEST_CODE
+            );
+        }
+    }
+
+
 }
